@@ -41,7 +41,7 @@ object FindCommentElement extends App {
   println(hasCommonElement1(Array('a','b','c'), Array('h'))) // return false
   println(hasCommonElement1(Array('a','b','c'), Array())) // return false
   println(hasCommonElement1(Array('a','b','h'), Array('h'))) // return true
-  
+
   /*
       Better in Time Complexity, bad Space Complexity =>
         (Good)Time Complexity: O(a + b)
