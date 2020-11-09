@@ -39,7 +39,7 @@ object MergeSortedArrays extends App {
           // push arrray2 remaining items to final merged array
           if(j < array2.length) {
             // add all the remaining elements of array 2
-            for(k <- j-1 until array2.length) {
+            for(k <- j-1 to array2.length-1) {
               mergedArray = mergedArray :+ array2(k)
               j = j + 1
             }
@@ -48,10 +48,10 @@ object MergeSortedArrays extends App {
         } // ends here
         else if (j > array2.length) {
           // push array1 remaining items to final merged array
-          if(i < array1.length) {
+          if(i <= array1.length) {
             // add all the remaining elements of array 1
-            for(k <- i-1 until array1.length) {
-              mergedArray = mergedArray :+ array2(i)
+            for(k <- i-1 to array1.length-1) {
+              mergedArray = mergedArray :+ array1(k)
               i = i + 1
             }
           }
@@ -78,6 +78,11 @@ object MergeSortedArrays extends App {
     }
   }
 
-  mergeShortArray(Array(1,2,3,4), Array(5,6)).foreach(println)
+  // test cases
+  mergeShortArray(Array(0,2,3), Array()).foreach(println)  // should return Array(0,2,3)
+  mergeShortArray(Array(), Array(0,2,3)).foreach(println)  // should return Array(0,2,3)
+  mergeShortArray(Array(0,3,4,31),Array(4,5,30)).foreach(println) // should return Array(0,3,4,4,5,30,31)
+  mergeShortArray(Array(5,6), Array(1)).foreach(println) // should return Array(1,5,6)
+
 
 }
