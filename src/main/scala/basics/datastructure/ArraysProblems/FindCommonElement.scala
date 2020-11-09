@@ -18,7 +18,7 @@ package basics.datastructure.ArraysProblems
   *  Taken From: https://www.udemy.com/course/master-the-coding-interview-data-structures-algorithms/learn/lecture/12214986#overview
  */
 
-object FindCommentElement extends App {
+object FindCommonElement extends App {
 
   /* Brute force/naive => Loop through your both the arrays & find common element
                             (Bad) Time Complexity: O(a * b)
