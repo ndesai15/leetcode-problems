@@ -53,9 +53,7 @@ object FindCommonElement extends App {
     var foundMatch = false
     var arrayToMap: Map[Char, Boolean] = Map()
     // Time complexity: O(a)
-    for(element <- array1) {
-      arrayToMap = arrayToMap + (element -> true)
-    }
+    array1.foreach(element => arrayToMap + (element -> true))
     // Time complexity: O(b)
     for(element <- array2) {
       if(arrayToMap.contains(element)) foundMatch = true

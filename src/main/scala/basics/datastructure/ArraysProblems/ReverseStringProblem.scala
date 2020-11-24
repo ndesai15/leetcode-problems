@@ -27,11 +27,12 @@ object ReverseStringProblem extends App {
     if (input == null | input == "") input
     else {
       if (input.length > 1) {
-        println("I am here")
         var output = ""
         val inputCharArray = input.split("")
-        for (i <- inputCharArray.length - 1 to 0 by -1) {
-          output += inputCharArray(i).mkString("")
+        // check this one more
+        inputCharArray.foreach {
+          element =>
+            output = output + element.mkString("")
         }
         output
       }
@@ -53,7 +54,6 @@ object ReverseStringProblem extends App {
     if (input == null || input == "") input
     else {
       if (input.length > 1) {
-        println("I am here")
         val inputCharArray = input.split("")
         val output = inputCharArray.reverse.mkString("")
         output
