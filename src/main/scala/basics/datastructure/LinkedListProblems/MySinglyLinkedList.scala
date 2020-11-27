@@ -5,7 +5,7 @@ package basics.datastructure.LinkedListProblems
   * Problem Statement: Build own linked list
  */
 
-abstract class MyLinkedList[+A] {
+abstract class MySinglyLinkedList[+A] {
 
   /*
      head = the first element of the list
@@ -13,42 +13,41 @@ abstract class MyLinkedList[+A] {
      isEmpty = is this list empty
      add(element) => returns a new list with this element added
      toString = String representation of the list
-     TODO: Insert an element to a specific index
    */
 
   def head: A
-  def tail: MyLinkedList[A]
+  def tail: MySinglyLinkedList[A]
   def isEmpty : Boolean
-  def prepend[B >: A](element: B) : MyLinkedList[B] // make this list an immutable list
-  def append[B >: A](element: B): MyLinkedList[B]
-  def ++[B >: A](anotherList: MyLinkedList[B]): MyLinkedList[B]
-  def insert[B >:A](index: Int, element:B): MyLinkedList[B]
+  def prepend[B >: A](element: B) : MySinglyLinkedList[B] // make this list an immutable list
+  def append[B >: A](element: B): MySinglyLinkedList[B]
+  def ++[B >: A](anotherList: MySinglyLinkedList[B]): MySinglyLinkedList[B]
+  def insert[B >:A](index: Int, element:B): MySinglyLinkedList[B]
 
   // polymorphic call
   def printElements: String
   override def toString: String = s"[$printElements]"
 }
 
-case object Empty extends MyLinkedList[Nothing] {
+case object Empty extends MySinglyLinkedList[Nothing] {
 
   def head: Nothing = throw new NoSuchElementException("No Such Element")
-  def tail: MyLinkedList[Nothing] = throw new NoSuchElementException("No Such Element")
+  def tail: MySinglyLinkedList[Nothing] = throw new NoSuchElementException("No Such Element")
   def isEmpty : Boolean = true
-  def prepend[B >: Nothing](element: B): MyLinkedList[B] = Cons(element, this) // make this list an immutable list
-  def append[B >: Nothing](element:B): MyLinkedList[B] = Cons(element, this)
+  def prepend[B >: Nothing](element: B): MySinglyLinkedList[B] = Cons(element, this) // make this list an immutable list
+  def append[B >: Nothing](element:B): MySinglyLinkedList[B] = Cons(element, this)
   override def printElements: String = ""
-  def ++[B >: Nothing](anotherList: MyLinkedList[B]): MyLinkedList[B] = anotherList
-  override def insert[B >: Nothing](index: Int, element:B): MyLinkedList[B] = Cons(element,this)
+  def ++[B >: Nothing](anotherList: MySinglyLinkedList[B]): MySinglyLinkedList[B] = anotherList
+  override def insert[B >: Nothing](index: Int, element:B): MySinglyLinkedList[B] = Cons(element,this)
 
 }
 
-case class Cons[+A](h: A, t: MyLinkedList[A]) extends MyLinkedList[A] {
+case class Cons[+A](h: A, t: MySinglyLinkedList[A]) extends MySinglyLinkedList[A] {
 
   def head: A = h
-  def tail: MyLinkedList[A] = t
+  def tail: MySinglyLinkedList[A] = t
   def isEmpty : Boolean = false
-  def prepend[B >: A](element: B) : MyLinkedList[B] = Cons(element, this)
-  def ++[B >: A](anotherList: MyLinkedList[B]) = Cons(h, t ++ anotherList)
+  def prepend[B >: A](element: B) : MySinglyLinkedList[B] = Cons(element, this)
+  def ++[B >: A](anotherList: MySinglyLinkedList[B]) = Cons(h, t ++ anotherList)
 
   /*
      [1 2 3] append 4
@@ -57,13 +56,13 @@ case class Cons[+A](h: A, t: MyLinkedList[A]) extends MyLinkedList[A] {
        => Cons(1, Cons(2, Cons(3, Cons(4, Empty))))
   */
 
-  def append[B >: A](element: B): MyLinkedList[B] = Cons(h, t ++ Cons(element, Empty))
+  def append[B >: A](element: B): MySinglyLinkedList[B] = Cons(h, t ++ Cons(element, Empty))
 
   override def printElements: String =
     if (t.isEmpty) "" + h
     else h + " " + t.printElements
 
-  override def insert[B >: A](index: Int, element: B): MyLinkedList[B] = {
+  override def insert[B >: A](index: Int, element: B): MySinglyLinkedList[B] = {
     if (index < 0) {
       Empty
     }
