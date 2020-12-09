@@ -15,6 +15,12 @@ abstract class MySinglyLinkedList[+A] {
      toString = String representation of the list
    */
 
+  /*
+
+    1. Accessing head & tail : O(1)
+    2. Appending an element, inserting element = O(n)
+
+  */
   def head: A
   def tail: MySinglyLinkedList[A]
   def isEmpty : Boolean
