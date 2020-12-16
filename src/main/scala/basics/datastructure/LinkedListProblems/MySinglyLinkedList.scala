@@ -24,7 +24,7 @@ abstract class MySinglyLinkedList[+A] {
   def head: A
   def tail: MySinglyLinkedList[A]
   def isEmpty : Boolean
-  def prepend[B >: A](element: B) : MySinglyLinkedList[B] // make this list an immutable list
+  def prepend[B >: A](element: B) : MySinglyLinkedList[B] = Cons(element, this)
   def append[B >: A](element: B): MySinglyLinkedList[B]
   def ++[B >: A](anotherList: MySinglyLinkedList[B]): MySinglyLinkedList[B]
   def insert[B >:A](index: Int, element:B): MySinglyLinkedList[B]
@@ -39,7 +39,6 @@ case object Empty extends MySinglyLinkedList[Nothing] {
   def head: Nothing = throw new NoSuchElementException("No Such Element")
   def tail: MySinglyLinkedList[Nothing] = throw new NoSuchElementException("No Such Element")
   def isEmpty : Boolean = true
-  def prepend[B >: Nothing](element: B): MySinglyLinkedList[B] = Cons(element, this) // make this list an immutable list
   def append[B >: Nothing](element:B): MySinglyLinkedList[B] = Cons(element, this)
   override def printElements: String = ""
   def ++[B >: Nothing](anotherList: MySinglyLinkedList[B]): MySinglyLinkedList[B] = anotherList
@@ -52,7 +51,7 @@ case class Cons[+A](h: A, t: MySinglyLinkedList[A]) extends MySinglyLinkedList[A
   def head: A = h
   def tail: MySinglyLinkedList[A] = t
   def isEmpty : Boolean = false
-  def prepend[B >: A](element: B) : MySinglyLinkedList[B] = Cons(element, this)
+
   def ++[B >: A](anotherList: MySinglyLinkedList[B]) = Cons(h, t ++ anotherList)
 
   /*
