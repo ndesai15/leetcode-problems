@@ -53,6 +53,9 @@ sealed abstract class RList[+T]{ //Covariant List Type
 
   // duplicate each element a number of times in a row
   def duplicateEach(k: Int) : RList[T]
+
+  // rotation by a number of positions to the left
+  def rotate(k: Int): RList[T]
 }
 
 case object RNil extends RList[Nothing]{
@@ -95,6 +98,9 @@ case object RNil extends RList[Nothing]{
 
   // duplicate each element a number of times in a row
   override def duplicateEach(k: Int): RList[Nothing] = RNil
+
+  // rotation by a number of positions to the left
+  override def rotate(k: Int): RList[Nothing] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -328,6 +334,31 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     duplicateEachTailRec(this,RNil, k)
   }
 
+  // rotation by a number of positions to the left
+  override def rotate(k: Int): RList[T] = {
+
+    /*
+       [1,2,3,4,5].rotate(3) = rotateTailRec([1,2,3,4,5],0,[])
+         = rotateTailRec([2,3,4,5],1,[1])
+         = rotateTailRec([3,4,5],2,[2,1])
+         = rotateTailRec([4,5],3,[3,2,1])
+         = [4,5] ++ [1,2,3]
+         = [4,5,1,2,3]
+
+       Complexity: O(Min(N,K)
+
+     */
+
+    def rotateTailRec(remainingList: RList[T], currentIndex: Int, predecessor: RList[T]): RList[T] = {
+      if(currentIndex == k) remainingList ++ predecessor.reverse
+      else if(remainingList.isEmpty) predecessor.reverse
+      else rotateTailRec(remainingList.tail, currentIndex + 1, remainingList.head :: predecessor)
+    }
+
+    if(k < 0) this
+    else rotateTailRec(this, 0, RNil)
+  }
+
 }
 
 // create a large list
@@ -393,6 +424,10 @@ object ListProblem extends App {
     val mediumList = 1 :: 1 :: 2 :: 3 :: 3 :: 4 :: 5 :: RNil
     println(mediumList.rle)
     println(mediumList.duplicateEach(3))
+
+    // test rotate list
+    val plainList = 1 :: 2 :: 3 :: 4 :: 5 :: 6 :: 7 :: 8 :: 9 :: RNil
+    println(plainList.rotate(3))
   }
   testMediumProblems()
 }
