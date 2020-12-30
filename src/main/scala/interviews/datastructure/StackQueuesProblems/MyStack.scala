@@ -1,4 +1,4 @@
-package basics.datastructure.StackQueuesProblems
+package interviews.datastructure.StackQueuesProblems
 
 /**
   * @author ndesai on 2020-11-27

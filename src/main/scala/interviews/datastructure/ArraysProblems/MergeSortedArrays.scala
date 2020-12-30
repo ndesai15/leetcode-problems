@@ -1,4 +1,4 @@
-package basics.datastructure.ArraysProblems
+package interviews.datastructure.ArraysProblems
 
 /**
   * @author ndesai on 2020-10-31
