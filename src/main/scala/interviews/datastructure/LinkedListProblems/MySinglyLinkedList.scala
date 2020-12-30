@@ -1,4 +1,4 @@
-package basics.datastructure.LinkedListProblems
+package interviews.datastructure.LinkedListProblems
 
 /**
   * @author ndesai on 2020-11-11

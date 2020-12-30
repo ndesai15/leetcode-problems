@@ -1,4 +1,4 @@
-package basics.datastructure.TreesProblems
+package interviews.datastructure.TreesProblems
 
 import scala.annotation.tailrec
 

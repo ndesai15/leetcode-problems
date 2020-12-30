@@ -1,4 +1,4 @@
-package basics.datastructure.HashTablesProblems
+package interviews.datastructure.HashTablesProblems
 
 /**
   * @author ndesai on 2020-11-09

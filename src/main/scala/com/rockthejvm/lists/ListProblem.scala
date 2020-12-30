@@ -1,5 +1,4 @@
 package com.rockthejvm.lists
-
 import scala.annotation.tailrec
 
 /**
@@ -53,6 +52,23 @@ sealed abstract class RList[+T]{ //Covariant List Type
 
   // duplicate each element a number of times in a row
   def duplicateEach(k: Int) : RList[T]
+
+  // rotation by a number of positions to the left
+  def rotate(k: Int): RList[T]
+
+  // random sample
+  def sample(k:Int) : RList[T]
+
+  /**
+    * Hard difficulty problems
+    *
+    */
+  // sorting the list in the order defined by the Ordering object
+  def insertionSort[S >:T](ordering: Ordering[S]): RList[S]
+  // merge sort
+  def mergeSort[S >:T](ordering: Ordering[S]): RList[S]
+  // quick sort
+  def quickSort[S >:T](ordering: Ordering[S]): RList[S]
 }
 
 case object RNil extends RList[Nothing]{
@@ -95,6 +111,23 @@ case object RNil extends RList[Nothing]{
 
   // duplicate each element a number of times in a row
   override def duplicateEach(k: Int): RList[Nothing] = RNil
+
+  // rotation by a number of positions to the left
+  override def rotate(k: Int): RList[Nothing] = RNil
+
+  // random sample
+  override def sample(k: Int): RList[Nothing] = RNil
+
+  /**
+    * Hard difficulty problems
+    *
+    */
+  // sorting the list in the order defined by the Ordering object
+  def insertionSort[S >:Nothing](ordering: Ordering[S]): RList[S] = RNil
+  // mergeSort
+  def mergeSort[S >:Nothing](ordering: Ordering[S]): RList[S] = RNil
+  // quickSort
+  def quickSort[S >:Nothing](ordering: Ordering[S]): RList[S] = RNil
 }
 
 case class ::[+T](override val head: T, override val tail: RList[T]) extends RList[T] {
@@ -172,7 +205,7 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     reverseTailRec(this, RNil)
   }
 
-  override def ++[S >: T](anotherList:  RList[S]): RList[S] = { //new :: (this.head, this.tail ++ anotherList)
+  override def ++[S >: T](anotherList:  RList[S]): RList[S] = {
 
     /*
        Complexity = O(N)
@@ -207,6 +240,7 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     else removeAtTailRec(this, 0, RNil)
   }
 
+  // the big 3
   override def map[S](f: T => S): RList[S] = {
     /*
         [1, 2, 3].map(x => x * 10) = mapTailRec([1,2,3], [])
@@ -246,7 +280,42 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
       else flatMapTailRec(remainingList.tail, f(head).reverse ++ result) // stack recursive manner
     }
 
-    flatMapTailRec(this, RNil)
+    /*
+       [1,2,3].flatMap(x => [x, 2*x]) = betterFlatMap([1,2,3], [])
+         = betterFlatMap([2,3], [[2,1]])
+         = betterFlatMap([3], [[4,2]],[2,1]])
+         = betterFlatMap([], [[6,3], [4,2]], [2,1]])
+         = concatenateAll([[6,3], [4,2]], [2,1]], RNil, RNil)
+         = concatenateAll([[4,2], [2,1]], [6,3], RNil)
+         = concatenateAll([[4,2], [2,1]], [3], [6])
+         = concatenateAll([[4,2], [2,1]], [], [3,6])
+         = concatenateAll([[2,1]], [4,2], [3,6])
+         = concatenateAll([[2,1]],[2],[4,3,6])
+         = concatenateAll([[2,1]],[],[2,4,3,6])
+         = concatenateAll([[]],[2,1],[2,4,3,6])
+         = concatenateAll([[]],[],[1,2,2,4,3,6])
+         = [1,2,2,4,3,6]
+
+       Complexity: O(N + Z) ~ O(Z)
+
+     */
+    @tailrec
+    def betterFlatMap(remaining: RList[T], accumulator: RList[RList[S]]):RList[S] = {
+      if(remaining.isEmpty) concatenateAll(accumulator, RNil, RNil)
+      else betterFlatMap(remaining.tail, f(remaining.head).reverse :: accumulator)
+    }
+
+    /*
+        Complexity: O(Z)
+     */
+    @tailrec
+    def concatenateAll(elements: RList[RList[S]], currentList: RList[S], accumulator: RList[S]): RList[S] = {
+      if(elements.isEmpty && currentList.isEmpty) accumulator
+      else if(currentList.isEmpty) concatenateAll(elements.tail, elements.head, accumulator)
+      else concatenateAll(elements, currentList.tail, currentList.head :: accumulator)
+    }
+
+    betterFlatMap(this, RNil)
   }
 
   override def filter(f: T => Boolean): RList[T] = {
@@ -275,6 +344,8 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     * Medium difficulty problems
     *
     */
+
+  // run-length encoding
   override def rle: RList[(T, Int)] = {
 
     /*
@@ -328,6 +399,234 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     duplicateEachTailRec(this,RNil, k)
   }
 
+  // rotation by a number of positions to the left
+  override def rotate(k: Int): RList[T] = {
+
+    /*
+       [1,2,3].rotate(3) == [1,2,3]
+       [1,2,3].rotate(6) == [1,2,3]
+       [1,2,3].rotate(4) == [2,3,1]
+
+       [1,2,3].rotate(1) = rotateTailRec([1,2,3], 0, [])
+         = rotateTailRec([2,3], 1, [1])
+         = [2,3,1]
+
+       [1,2,3].rotate(3) = rotateTailRec([1,2,3], 0, [])
+         = rotateTailRec([2,3], 1, [1])
+         = rotateTailRec([3], 2, [2,1])
+         = rotateTailRec([], 3, [3,2,1])
+         = [1,2,3]
+
+       [1,2,3].rotate(4) = rotateTailRec([1,2,3],0,[])
+         = rotateTailRec([2,3],1,[1])
+         = rotateTailRec([3],2,[2,1])
+         = rotateTailRec([],3,[3,2,1])
+         = rotateTailRec([1,2,3],3,[])
+         = rotateTailRec([2,3],4,[1])
+         = [2,3,1]
+
+       Complexity: O(Max(N,K))
+
+     */
+
+    @tailrec
+    def rotateTailRec(remainingList: RList[T], rotationsLeft: Int, buffer: RList[T]): RList[T] = {
+      if(remainingList.isEmpty && rotationsLeft == k) this
+      else if(remainingList.isEmpty) rotateTailRec(this,rotationsLeft, RNil)
+      else if(rotationsLeft == k) remainingList ++ buffer.reverse
+      else rotateTailRec(remainingList.tail, rotationsLeft + 1, remainingList.head :: buffer)
+    }
+
+    if(k < 0) this
+    else rotateTailRec(this, 0, RNil)
+  }
+
+  // random sample
+  override def sample(k: Int): RList[T] = {
+
+    /*
+       [1,2,3,4,5].sample(3) = sampleTailRec(0, [])
+         = sampleTailRec(1, [4])
+         = sampleTailRec(2, [2,4])
+         = sampleTailRec(3, [1,2,4])
+         = sampleTailRec(4, [1,1,2,4])
+         = [1,1,2,4]
+
+       Complexity = O(N * k)
+     */
+
+    @tailrec
+    def sampleTailRec(sampleRate: Int,sample: RList[T]): RList[T] = {
+      if(sampleRate == k) sample
+      else {
+        val random = scala.util.Random.nextInt(this.length)
+        sampleTailRec(sampleRate + 1, this(random) :: sample )
+      }
+    }
+
+    def sampleElegant: RList[T] =
+      RList.from((1 to k).map(_ => scala.util.Random.nextInt(this.length)).map(index => this(index)))
+
+    if(k < 0) RNil else sampleTailRec(0,RNil)
+  }
+
+  /**
+    * Hard difficulty problems
+    *
+    */
+  // sorting the list in the order defined by the Ordering object
+  override def insertionSort[S >:T](ordering: Ordering[S]): RList[S] = {
+    /*
+       insertSorted(4, [], [1,2,3,5])
+         = insertSorted(4, [1], [2,3,5])
+         = insertSorted(4, [2,1], [3,5])
+         = insertSorted(4, [3,2,1], [5])
+         = [3,2,1].reverse ++ (4 :: [5])
+         = [1,2,3,4,5]
+
+       Complexity: O(N)
+     */
+
+    @tailrec
+    def insertSorted(element: T, before: RList[S], after: RList[S]): RList[S] = {
+      if(after.isEmpty || ordering.lteq(element, after.head)) before.reverse ++ (element :: after)
+      else insertSorted(element, after.head :: before, after.tail)
+    }
+    /*
+      [3,1,4,2,5].insertionSort = insertionSortTailRec([3,1,4,2,5], [])
+        = insertionSortTailRec([1,4,2,5],[3])
+        = insertionSortTailRec([4,2,5],[1,3])
+        = insertionSortTailRec([2,5],[1,3,4])
+        = insertionSortTailRec([5],[1,2,3,4])
+        = insertionSortTailRec([],[1,2,3,4,5])
+        = [1,2,3,4,5]
+
+      Complexity: O(N^2)
+     */
+
+    @tailrec
+    def insertionSortTailRec(remaining: RList[T], accumulator: RList[S]) : RList[S] = {
+      if(remaining.isEmpty) accumulator
+      else insertionSortTailRec(remaining.tail, insertSorted(remaining.head, RNil, accumulator))
+    }
+
+    insertionSortTailRec(this, RNil)
+  }
+
+  override def mergeSort[S >: T](ordering: Ordering[S]): RList[S] = {
+
+    /*
+      merge([1,3],[2,4,5,6,7],[]) =
+      merge([3],[2,4,5,6,7],[1]) =
+      merge([3],[4,5,6,7],[2,1]) =
+      merge([],[4,5,6,7],[3,2,1]) =
+      [3,1,2].reverse ++ [4,5,6,7] =
+      [1,2,3,4,5,6,7]
+     */
+
+    @tailrec
+    def merge(listA: RList[S], listB: RList[S], accumulator: RList[S]): RList[S] = {
+      if(listA.isEmpty) accumulator.reverse ++ listB
+      else if(listB.isEmpty) accumulator.reverse ++ listA
+      else if(ordering.lteq(listA.head, listB.head)) merge(listA.tail, listB, listA.head :: accumulator)
+      else merge(listA,listB.tail, listB.head :: accumulator)
+    }
+
+    /*
+        [3,1,2,5,4] => [[3],[1],[2],[5],[4]]
+
+        mst([[3],[1],[2],[5],[4]],[]) =
+        = mst([[2],[5],[4]], [[1,3]])
+        = mst([[4]],[[2,5],[1,3]])
+        = mst([], [[4],[2,5],[1,3]])
+        = mst([[4],[2,5],[1,3]],[])
+        = mst([[1,3]],[[2,4,5]])
+        = mst([],[[1,3],[2,4,5]])
+        = mst([[1,3],[2,4,5]],[])
+        = mst([],[[1,2,3,4,5]])
+        = [1,2,3,4,5]
+
+        Complexity: O(n * log(n))
+        complexity(n) = 2 * complexity(n/2) + n
+     */
+
+    @tailrec
+    def mergeSortTailRec(smallLists: RList[RList[S]], bigLists: RList[RList[S]]): RList[S] = {
+      if(smallLists.isEmpty) {
+        if(bigLists.isEmpty) RNil
+        else if(bigLists.tail.isEmpty) bigLists.head
+        else mergeSortTailRec(bigLists, RNil)
+      }
+      else if (smallLists.tail.isEmpty) {
+        if(bigLists.isEmpty) smallLists.head
+        else mergeSortTailRec(smallLists.head :: bigLists, RNil)
+      }
+      else {
+        val first = smallLists.head
+        val second = smallLists.tail.head
+        val merged = merge(first, second, RNil)
+        mergeSortTailRec(smallLists.tail.tail, merged :: bigLists)
+      }
+    }
+    mergeSortTailRec(this.map(x => x :: RNil), RNil)
+  }
+
+  override def quickSort[S >: T](ordering: Ordering[S]): RList[S] = {
+
+    /*
+       [5,6,1,4,2].quickSort = partition([6,1,4,2], 5, [], [])
+         = partition([1,4,2], 5, [], [6])
+         = partition([4,2], 5, [1], [6])
+         = partition([2], 5, [4,1], [6])
+         = partition([], 5, [2,4,1], [6])
+         =([1,4,2], [6])
+     */
+
+    @tailrec
+    def partition(list: RList[T], pivot: T, smaller: RList[T], larger: RList[T]): (RList[T], RList[T]) = {
+      if(list.isEmpty) (smaller.reverse, larger.reverse)
+      else
+        if(ordering.lteq(pivot, list.head)) partition(list.tail, pivot, smaller, list.head::larger)
+        else partition(list.tail, pivot, list.head :: smaller, larger)
+    }
+
+    /*
+        [3,1,2,5,4].quickSort
+
+        partition([1,2,5,4],3,[],[]) -> ([1,2],[5,4])
+        partition([2],1,[],[]) -> ([],[2])
+        partition([4],5,[],[]) -> ([4],[])
+
+        quickSortTailRec([[3,1,2,5,4]], []) =
+        quickSortTailRec([[1,2],[3],[5,4]],[]) =
+        quickSortTailRec([[],[1],[2],[3],[5,4]],[])
+        quickSortTailRec([[1],[2],[3],[5,4]],[])
+        quickSortTailRec([[2],[3],[5,4]],[[1]])
+        quickSortTailRec([[3],[5,4]],[[2],[1]])
+        quickSortTailRec([[5,4]],[[3],[2],[1]])
+        quickSortTailRec([[4],[],[5]],[[3],[2],[1]])
+        quickSortTailRec([],[[5],[4],[3],[2],[1]])
+        = [1,2,3,4,5]
+
+        Complexity: O(N^2) in the worst case(when the list is sorted)
+        on average O(N * log(N))
+     */
+
+    @tailrec
+    def quickSortTailRec(remaining: RList[RList[T]], result: RList[RList[T]]): RList[S] = {
+      if(remaining.isEmpty) result.flatMap(smallList => smallList).reverse
+      else if(remaining.head.isEmpty) quickSortTailRec(remaining.tail, result)
+      else if (remaining.head.tail.isEmpty) quickSortTailRec(remaining.tail, remaining.head :: result)
+      else {
+        val partitioned = partition(remaining.head.tail, remaining.head.head, RNil, RNil)
+        val smallList = partitioned._1
+        val largeList = partitioned._2
+        quickSortTailRec(smallList :: (remaining.head.head :: RNil) :: largeList :: remaining.tail, result)
+      }
+    }
+
+    quickSortTailRec(this :: RNil, RNil)
+  }
 }
 
 // create a large list
@@ -347,43 +646,43 @@ object RList{
 }
 
 object ListProblem extends App {
+  val aSmallList = 1 :: 2 :: 3 :: RNil
+  val anotherList = 11 :: 22 :: 33 :: 44 :: 55 :: 66 :: 77 :: RNil
+  val emptyList = RNil
+  val aLargeList = RList.from(1 to 10000)
+
   def testEasyProblems() = {
-    val aSmallList = 1 :: 2 :: 3 :: RNil
-    val anotherList = 11 :: 22 :: 33 :: 44 :: 55 :: 66 :: 77 :: RNil
-    val emptyList = RNil
-    val aLargeLiist = RList.from(1 to 10000)
     println(aSmallList)
 
     // test k-th
     println(aSmallList.apply(1)) // 2
-    println(aLargeLiist.apply(8675))
+    println(aLargeList.apply(8675)) // 8676
 
     // test length
     println(aSmallList.length) // 3
-    println(anotherList.length) // 7
     println(emptyList.length) // 0
-    println(aLargeLiist.length)
+    println(aLargeList.length) // 10000
 
     // test reverse
-    println(aSmallList.reverse)
-    println(aLargeLiist.reverse)
+    println(aSmallList.reverse) // [3, 2, 1]
+    println(aLargeList.reverse) // [10000, 9999, 9997, ...]
 
     // test concatenate another list
-    println(aSmallList ++ aLargeLiist)
+    println(s"Testing Append operation: ${aSmallList ++ aLargeList} ")
 
     // test remove element
     println(anotherList.removeAt(3))
 
     // test map
-    println(aLargeLiist.map(x => x + 1))
+    println(aLargeList.map(x => x + 1))
 
     // test flatMap
     val currentTime = System.currentTimeMillis()
-    aLargeLiist.flatMap(x => x :: (2 * x) :: RNil)
-    println(System.currentTimeMillis() - currentTime)
+    aLargeList.flatMap(x => x :: (2 * x) :: RNil)
+    println(s"Time to run flatMap on 10000 elements is ${System.currentTimeMillis() - currentTime}" ) // 5 ms
 
     // test filter
-    println(aLargeLiist.filter(x => x % 2 == 0))
+    println(aLargeList.filter(x => x % 2 == 0))
   }
 
  /**
@@ -393,6 +692,41 @@ object ListProblem extends App {
     val mediumList = 1 :: 1 :: 2 :: 3 :: 3 :: 4 :: 5 :: RNil
     println(mediumList.rle)
     println(mediumList.duplicateEach(3))
+
+    // test rotate list
+    val plainList = RList.from(1 to 10)
+    for{
+      i <- 1 to 20
+    }println(plainList.rotate(i))
+
+    // test random sample
+    println(aLargeList.sample(10))
+
+    // test better flatMap
+    val currentTime = System.currentTimeMillis()
+    aLargeList.flatMap(x => x :: (2 * x) :: RNil)
+    println(s"Time to run flatMap on 10000 elements is ${System.currentTimeMillis() - currentTime}" ) // 6 ms
   }
-  testMediumProblems()
+
+  /**
+    * Hard difficulty problems
+    */
+  def testHardProblems() = {
+    val unsortedList = 3 :: 2 :: 2 :: 3 :: 5 :: 8 :: 9 :: 0  :: RNil
+    val listToSort = aLargeList.sample(10)
+    val ordering : Ordering[Int] = Ordering.fromLessThan[Int](_ < _)
+
+    // test insertionSort
+    println(unsortedList.insertionSort(ordering))
+    println(listToSort.insertionSort(ordering))
+    // test merge sort
+    println(listToSort.mergeSort(ordering))
+
+    // test merge sort edge case
+    //println((3 :: RNil).mergeSort(ordering))
+
+    // test quick sort
+    println(listToSort.quickSort(ordering))
+  }
+  testHardProblems()
 }
