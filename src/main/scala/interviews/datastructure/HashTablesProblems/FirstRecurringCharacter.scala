@@ -1,5 +1,7 @@
 package interviews.datastructure.HashTablesProblems
 
+import scala.annotation.tailrec
+
 /**
   * @author ndesai on 2020-11-09
   * Google Question
@@ -22,37 +24,24 @@ package interviews.datastructure.HashTablesProblems
  
 object FirstRecurringCharacter extends App {
 
-
   /* Time Complexity : O(n)
      Space complexity : O(n) */
-  def findFirstRecurringCharacter(array: Array[Int]): Int = {
-    // check input, for invalid input array, return -1
-    if(array.length == 0) -1
-    // convert array to map
-    else {
-      var arrayToMap: Map[Int, Boolean] = Map()
-      for(i<- 0 until array.length) {
-        // check if array element exists in a map or not,
-        if(arrayToMap.contains(array(i))) {
-          // if exists, return an element
-          return array(i)
-        }
-        else {
-          arrayToMap = arrayToMap + (array(i) -> true)
-        }
-      }
-      // else return -1
-      return -1
+  def findFirstRecurringCharacterFromArray(array: Array[Int]): Int = {
+
+    @tailrec
+    def findFirstRecurringCharacterFromArrayTailRec(input: List[Int], visited: Map[Int, _]): Int = {
+      if(input.isEmpty) -1
+      else if(visited.contains(input.head)) input.head
+      else findFirstRecurringCharacterFromArrayTailRec(input.tail, visited + (input.head -> true))
     }
 
-
-
-
+    if(array.length <= 1) -1
+    else findFirstRecurringCharacterFromArrayTailRec(array.toList, Map())
   }
 
   // test cases
-  println(findFirstRecurringCharacter(Array(2,5,1,2,1,8,9)))   // should return 2
-  println(findFirstRecurringCharacter(Array(2,5,1,1,2,8,9)))   // should return 1
-  println(findFirstRecurringCharacter(Array()))   // should return -1
-  println(findFirstRecurringCharacter(Array(2,3,4,5)))   // should return -1
+  println(findFirstRecurringCharacterFromArray(Array(2,5,1,2,1,8,9)))   // should return 2
+  println(findFirstRecurringCharacterFromArray(Array(2,5,1,1,2,8,9)))   // should return 1
+  println(findFirstRecurringCharacterFromArray(Array()))   // should return -1
+  println(findFirstRecurringCharacterFromArray(Array(2,3,4,5)))   // should return -1
 }

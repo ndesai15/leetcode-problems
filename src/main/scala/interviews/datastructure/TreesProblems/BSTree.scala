@@ -1,88 +1,114 @@
-package interviews.datastructure.TreesProblems
-
 import scala.annotation.tailrec
 
-/**
-  * @author ndesai on 2020-12-08
-  *
-  */
-trait BSTree {
-  def root: Int
-  def left: BSTree
-  def right: BSTree
+sealed abstract class BTree[+T] {
+  def value: T
+  def left: BTree[T]
+  def right: BTree[T]
+
   def isEmpty: Boolean
-  def insert(element: Int): BSTree
-  def lookup(element: Int): BSTree
+  def isLeaf: Boolean
+  def insert[S >: T](element: S, ordering: Ordering[S]): BTree[S]
+  def lookup[S >: T](element: S, ordering: Ordering[S]): Boolean
 
-  def remove(element: Int): BSTree
-  def +(anotherTree:BSTree): BSTree
+
 }
 
-object BSEmpty extends BSTree {
-  override def root: Nothing = throw new NoSuchElementException("empty value")
+case object BEnd extends BTree[Nothing] {
+  override def value: Nothing = throw new NoSuchElementException
+  override def left: BTree[Nothing] = throw new NoSuchElementException
+  override def right: BTree[Nothing] = throw new NoSuchElementException
   override def isEmpty: Boolean = true
-  override def left: BSTree =
-    throw new NoSuchElementException("empty left tree")
-  override def right: BSTree =
-    throw new NoSuchElementException("empty right tree")
-  override def insert(element: Int): BSTree =
-    new BSCons(element, BSEmpty, BSEmpty)
-  override def lookup(element: Int): BSTree =
-    throw new NoSuchMethodException("looking into empty binary search tree")
 
-  override def remove(element: Int): BSTree = this
-
-  override def +(anotherTree: BSTree): BSTree = anotherTree
+  override def isLeaf: Boolean = false
+  override def insert[S >: Nothing](element: S, ordering: Ordering[S]): BTree[S] = BNode(element, BEnd, BEnd)
+  override def lookup[S >: Nothing](element: S, ordering: Ordering[S]): Boolean = false
 }
 
-class BSCons(value: => Int, l: => BSTree, r: => BSTree) extends BSTree {
-
-  lazy val root:Int = value
-  override def left: BSTree = l
-  override def right: BSTree = r
-
+case class BNode[+T](override val value:T, override val left: BTree[T], override val right: BTree[T]) extends BTree[T] {
+  /**
+    * Easy Problems
+    */
   override def isEmpty: Boolean = false
-  override def lookup(element: Int): BSTree = {
-      if (element < root) l.lookup(element)
-      else if (element > root) r.lookup(element)
-      else new BSCons(element, l, r)
-  }
-  override def insert(element: Int): BSTree =
-    if (element < root) new BSCons(root, l.insert(element), r)
-    else new BSCons(root, l, r.insert(element))
+  override def isLeaf: Boolean = left.isEmpty && right.isEmpty
 
-  override def +(anotherTree: BSTree): BSTree = {
-    println("jay bahuchar "+ value)
-    if(value < anotherTree.root) l + anotherTree
-    else r + anotherTree
-  }
+  override def insert[S >: T](element: S, ordering: Ordering[S]): BTree[S] = {
 
-  override def remove(element: Int): BSTree = {
-    if(element < value)  l.remove(element)
-    else if(element > value) r.remove(element)
-    else { // matched
-      if(l.isEmpty && r.isEmpty) {
-
-        println("In if case "+ value)
-        new BSCons(value, BSEmpty, BSEmpty)
-      }
-      else{
-        println("In else case")
-        BSEmpty
+    @tailrec
+    def insertTailRec(todo: List[BTree[S]], expanded: Set[BTree[S]], directions: List[String], done: List[BTree[S]]): BTree[S]= {
+      if(todo.isEmpty) done.head
+      else if(todo.head.isEmpty) insertTailRec(todo.tail,expanded,directions,done)
+      else {
+        val currentNode = todo.head
+        val currentVal = currentNode.value
+        if(currentNode.isLeaf) {
+          val elementNode = BNode(element, BEnd, BEnd)
+          val newNode = if(ordering.lteq(currentVal, element)) BNode(currentVal, BEnd , elementNode) else BNode(currentVal, elementNode, BEnd)
+          insertTailRec(todo.tail, expanded, directions, newNode :: done)
+        }
+        else if(expanded.contains(currentNode)){
+          val direction = directions.head
+          val newNode = if(direction == "left") BNode(currentVal, done.head, currentNode.right) else BNode(currentVal, currentNode.left,done.head)
+          insertTailRec(todo.tail, expanded, directions, newNode :: done) // i think we need to get head element
+        }
+        else {
+          if(ordering.lteq(currentVal, element)) {
+            // go to right
+            insertTailRec(currentNode.right :: todo, expanded + currentNode, "right" :: directions, done)
+          }
+          else {
+            // go to left
+            insertTailRec(currentNode.left :: todo, expanded + currentNode, "left" :: directions, done)
+          }
+        }
       }
     }
+    insertTailRec(List(this), Set(), List(), List())
+  }
+
+  override def lookup[S >: T](element: S, ordering: Ordering[S]): Boolean = {
+
+    @tailrec
+    def lookUpTailRec(todo: List[BTree[S]]): Boolean = {
+      if(todo.isEmpty) false
+      else if(todo.head.isEmpty) lookUpTailRec(todo.tail)
+      else if(todo.head.isLeaf) if(ordering.equiv(todo.head.value, element)) true else false
+      else{
+        val currentNode = todo.head
+        val currentNodeValue = currentNode.value
+        if(ordering.lt(currentNodeValue, element)) lookUpTailRec(currentNode.right :: todo) // go to right
+        else if (ordering.gt(currentNodeValue, element))lookUpTailRec(currentNode.left :: todo)
+        else true
+      }
+    }
+
+    lookUpTailRec(List(this))
   }
 }
 
-object TreeStructureTest extends App {
-  val tree = BSEmpty.insert(28).insert(22).insert(73).insert(44).insert(55).insert(91).insert(2).insert(54)
-  println(tree.root) // 28
-  println(tree.left.left.root) // 2
-  println(tree.right.left.right.root) // 55
-  println(tree.right.left.right.left.root) // 54
-  println(tree.right.right.root) // 91
-  println(tree.lookup(73).left.root == 44)
+object BSTree extends App {
+  val ordering : Ordering[Int] = Ordering.fromLessThan[Int](_ < _)
+  val bstTree = BNode(9,
+    BNode(5,
+      BNode(4, BEnd, BEnd),
+      BNode(6, BEnd, BEnd)
+    ),
+    BNode(15,
+      BNode(10, BEnd, BEnd),
+      BNode(17, BEnd, BEnd)
+    )
+  )
 
-  val newTree = tree.remove(2)
-  println(newTree.left.left)
+  // test insert operation
+  println(bstTree.insert(18, ordering))
+  println(bstTree.insert(3,ordering))
+  val emptyTree = BEnd
+  println(emptyTree.insert(5,ordering).insert(4,ordering).insert(3, ordering).insert(2, ordering).insert(1, ordering))
+
+  // test lookup operation
+  println(bstTree.lookup(9, ordering))
+  println(bstTree.lookup(17, ordering))
+  println(bstTree.lookup(19, ordering))
+  println(bstTree.lookup(99, ordering))
+  println(bstTree.lookup(6, ordering))
+  println(bstTree.lookup(7, ordering))
 }
