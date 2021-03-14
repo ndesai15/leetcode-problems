@@ -10,7 +10,6 @@ object ArrayBasics extends App {
 
   val array:Array[Int] = Array(1,2,3,4,5) // 5 * 4 = 20 bytes of data
                             // 0 1 2 3 4
-
   // 1. Access
   val second = array(2)  // O(1)
 
@@ -34,7 +33,4 @@ object ArrayBasics extends App {
   array.map(_ * 2).foreach(println)
 
   val seqReversed = array.reverse
-
-
-
 }

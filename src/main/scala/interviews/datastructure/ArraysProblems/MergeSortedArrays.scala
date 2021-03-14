@@ -1,5 +1,7 @@
 package interviews.datastructure.ArraysProblems
 
+import scala.annotation.tailrec
+
 /**
   * @author ndesai on 2020-10-31
   * Problem Statement: Merge 2 Sorted Arrays
@@ -20,6 +22,7 @@ object MergeSortedArrays extends App {
                          (Bad) Time Complexity:
                          (Good) Space Complexity:
    */
+
   def mergeShortArray(array1: Array[Int], array2: Array[Int]): Array[Int] = {
     // Check Input
     if(array2.length == 0) array1
@@ -78,11 +81,55 @@ object MergeSortedArrays extends App {
     }
   }
 
-  // test cases
-  mergeShortArray(Array(0,2,3), Array()).foreach(println)  // should return Array(0,2,3)
-  mergeShortArray(Array(), Array(0,2,3)).foreach(println)  // should return Array(0,2,3)
-  mergeShortArray(Array(0,3,4,31),Array(4,5,30)).foreach(println) // should return Array(0,3,4,4,5,30,31)
-  mergeShortArray(Array(5,6), Array(1)).foreach(println) // should return Array(1,5,6)
+  // TODO
+  def mergeSortedArray(array1: Array[Int], array2: Array[Int]): Array[Int] = {
+
+    @tailrec
+    def mergeSortedArrayTailRec(first: Array[Int], second: Array[Int], result: Array[Int]): Array[Int] = {
+      if(first.isEmpty && second.isEmpty) result
+      else {
+        if(first.isEmpty) {
+          println("First isEmpty")
+          second.flatMap(element => result :+ element)
+        }
+        else if(second.isEmpty) {
+          println("Second isEmpty")
+          result.foreach(println)
+          println("=======")
+          first.flatMap(element => result :+ element)
+        }
+        else {
+          val firstElement = first.head
+          val secondElement = second.head
+          if (firstElement < secondElement) mergeSortedArrayTailRec(first.tail, second, result :+ firstElement)
+          else mergeSortedArrayTailRec(first, second.tail, result :+ secondElement)
+        }
+      }
+    }
+
+    if(array1.isEmpty) array2
+    else if(array2.isEmpty) array1
+    else mergeSortedArrayTailRec(array1, array2, Array())
+  }
+
+  def testMergeSortedWhileLoop() = {
+    // test cases
+    mergeShortArray(Array(0,2,3), Array()).foreach(println)  // should return Array(0,2,3)
+    mergeShortArray(Array(), Array(0,2,3)).foreach(println)  // should return Array(0,2,3)
+    mergeShortArray(Array(0,3,4,31),Array(4,5,30)).foreach(println) // should return Array(0,3,4,4,5,30,31)
+    mergeShortArray(Array(5,6), Array(1)).foreach(println) // should return Array(1,5,6)
+  }
+
+  def testMergeSortedArray() = {
+    // test cases
+    //println(mergeSortedArray(Array(0,2,3), Array()).toList) // should return Array(0,2,3)
+    //println(mergeSortedArray(Array(), Array(0,2,3)).toList) // should return Array(0,2,3)
+    //println(mergeSortedArray(Array(0,3,4,31),Array(4,5,30)).toList) // should return Array(0,3,4,4,5,30,31)
+    println(mergeSortedArray(Array(5,6), Array(1)).toList) // should return Array(1,5,6)
+    //println(mergeSortedArray(Array(1), Array(5,6)).toList) // should return Array(1,5,6)
+  }
+
+  testMergeSortedArray()
 
 
 }
