@@ -6,7 +6,7 @@ package interviews.datastructure.StackQueuesProblems
  */
  
  
-abstract class MyStack[+A] {
+sealed trait MyStack[+A] {
 
   /*
      Implement a Stack as a linked list
@@ -58,7 +58,8 @@ case class ConsStack[+A](head: A, tail: MyStack[A]) extends MyStack[A] {
     ConsStack(element, this)
   }
 
-  override def pop(): MyStack[A] = if(!tail.isEmpty) tail else EmptyStack//ConsStack(tail.peek(), this.tail - this.tail.peek())
+  override def pop(): MyStack[A] = this.tail
+    //if(!tail.isEmpty) tail else EmptyStack//ConsStack(tail.peek(), this.tail - this.tail.peek())
 
   override def peek(): A = head
 }
@@ -75,12 +76,12 @@ object MyStackTest extends App {
 
   val pushStack2 = stack.push(2) // 2 -> 1
   println(pushStack2.toString())
-  println("Now head should be " + pushStack2.peek())  // 2
+  println("After pushing 2 to Stack current head is " + pushStack2.peek())  // 2
 
   println("Push 3 to Stack")
   val againPush = pushStack2.push(3)  // 3 -> 2 -> 1
   println("Current Stack is " + againPush toString)
-  println("Now head is " + againPush.peek()) // 3
+  println("After pushing 3 to Stack current head is " + againPush.peek()) // 3
 
   println("Push 4 to Stack")
   val againPush2 = againPush.push(4) // 4 -> 3 -> 2 -> 1
@@ -88,11 +89,11 @@ object MyStackTest extends App {
 
   println("Push 5 to Stack")
   val againPush3 = againPush2.push(5) // 5 -> 4 -> 3 -> 2 -> 1
-  println("Current Stack is " + againPush2 toString)
+  println("Current Stack is " + againPush3 toString)
   println("Now head is " + againPush3.peek()) //5
 
   val popTwice = againPush3.pop().pop() // should POP out 5 & 4
-  println("Current Stack is " + popTwice toString)
+  println("After poping out element twice stack is " + popTwice toString)
 
   val push100 = popTwice.push(100) // 100 -> 3 -> 2 -> 1
   val pop100 = push100.pop() // 3 -> 2 -> 1

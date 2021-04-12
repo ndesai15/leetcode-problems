@@ -728,5 +728,4 @@ object ListProblem extends App {
     // test quick sort
     println(listToSort.quickSort(ordering))
   }
-  testHardProblems()
 }
