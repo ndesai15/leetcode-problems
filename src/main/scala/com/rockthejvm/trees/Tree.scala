@@ -1,6 +1,7 @@
 package com.rockthejvm.trees
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Queue
 
 /**
   * @author ndesai on 2021-01-25
@@ -31,6 +32,12 @@ sealed abstract class BTree[+T] {
 
   // mirror a tree
   def mirror: BTree[T]
+
+  // TODO: Same shape as
+  // TODO: Symmetrical
+
+  // collect all nodes to a list
+  def toList: List[T]
 }
 
 case object BEnd extends BTree[Nothing] {
@@ -57,6 +64,9 @@ case object BEnd extends BTree[Nothing] {
 
   // mirror a tree
   override def mirror: BTree[Nothing] = BEnd
+
+  // collect all nodes to a list
+  override def toList: List[Nothing] = List()
 }
 
 case class BNode[+T](override val value:T, override val left: BTree[T], override val right: BTree[T]) extends BTree[T] {
@@ -200,9 +210,137 @@ case class BNode[+T](override val value:T, override val left: BTree[T], override
     }
     mirrorTailRec(List(this), Set(), List())
   }
+
+  // collect all nodes to a list
+  /*
+           ____1___
+          /        \
+         2          6
+        / \        / \
+       3  4       7   8
+           \
+            5
+
+     Options:
+      - pre-order: Root,Left, Right : [1,2,3,4,5,6,7,8]
+      - in-order: Left, Root, Right: [3,2,4,5,1,7,6,8]
+      - post-order: Left, Right, Root: [3,5,4,2,7,8,6,1]
+      - per-level: [1,2,6,3,4,7,8,5]
+   */
+  override def toList: List[T] = {
+
+    def preOrderStack(tree: BTree[T]): List[T] = {
+      if(tree.isEmpty) List()
+      else tree.value :: preOrderStack(tree.left) ++ preOrderStack(tree.right)
+    }
+
+    def inOrderStack(tree: BTree[T]): List[T] = {
+      if(tree.isEmpty) List()
+      else inOrderStack(tree.left) ++ List(tree.value) ++ inOrderStack(tree.right)
+    }
+
+    def postOrderStack(tree: BTree[T]): List[T] = {
+      if(tree.isEmpty) List()
+      else postOrderStack(tree.left) ++ postOrderStack(tree.right) ++ List(tree.value)
+    }
+
+    //preOrderStack(this)
+    //inOrderStack(this)
+    //postOrderStack(this)
+
+    /*
+      pot([1], [], []) =
+      pot([1, 2, 6], [1], []) =
+      pot([2, 6], [1], [1]) =
+      pot([2,3,4,6], [1,2], [1]) =
+      pot([3,4,6], [1,2],[1,2]) =
+      pot([4,6], [1,2], [1,2,3]) =
+      pot([4,5,6],[1,2,4],[1,2,3]) =
+      pot([5,6],[1,2,4],[1,2,3,4]) =
+      pot([6],[1,2,4],[1,2,3,4,5]) =
+      pot([6,7,8], [1,2,4,6],[1,2,3,4,5]) =
+      pot([7,8], [1,2,4,6], [1,2,3,4,5,6]) =
+      pot([8], [1,2,4,6], [1,2,3,4,5,6,7]) =
+      pot([],[1,2,4,6], [1,2,3,4,5,6,7,8]) =
+      [1,2,3,4,5,6,7,8]
+
+     */
+
+    def preOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
+      if(stack.isEmpty) acc.toList
+      else {
+        if(stack.head.isEmpty) preOrderTailRec(stack.tail, visited, acc)
+        else {
+          val node = stack.head
+          if(node.isEmpty) preOrderTailRec(stack.tail, visited, acc)
+          else if(node.isLeaf || visited.contains(node)) preOrderTailRec(stack.tail, visited, acc :+ node.value)
+          else preOrderTailRec(node :: node.left :: node.right :: stack.tail, visited + node, acc)
+        }
+      }
+    }
+
+    /* inOrder => Left, Root, Right
+       iot([1],[],[]) =
+       iot([2,1,6],[1],[]) =
+       iot([3,2,4,1,6],[1,2],[]) =
+       iot([2,4,1,6],[1,2],[3]) =
+       iot([4,1,6],[1,2],[3,2]) =
+       iot([4,5,1,6],[1,2,4],[3,2]) =
+       iot([5,1,6],[1,2,4],[3,2,4]) =
+       iot([1,6],[1,2,4],[3,2,4,5]) =
+       iot([6],[1,2,4],[3,2,4,5,1]) =
+       iot([7,6,8],[1,2,4,6], [3,2,4,5,1]) =
+       iot([6,8],[1,2,4,6], [3,2,4,5,1,7]) =
+       iot([8],[1,2,4,6], [3,2,4,5,1,7,6]) =
+       iot([],[1,2,4,6], [3,2,4,5,1,7,6,8]) =
+       [3,2,4,5,1,7,6,8]
+     */
+    def inOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
+      if(stack.isEmpty) acc.toList
+      else {
+        if(stack.head.isEmpty) inOrderTailRec(stack.tail, visited, acc)
+        else {
+          val node = stack.head
+          if(node.isEmpty) inOrderTailRec(stack.tail, visited, acc)
+          else if(node.isLeaf || visited.contains(node)) inOrderTailRec(stack.tail, visited, acc :+ node.value)
+          else inOrderTailRec(node.left :: node :: node.right :: stack.tail, visited + node, acc)
+        }
+      }
+    }
+    def postOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
+      if(stack.isEmpty) acc.toList
+      else {
+        if(stack.head.isEmpty) postOrderTailRec(stack.tail, visited, acc)
+        else {
+          val node = stack.head
+          if(node.isEmpty) postOrderTailRec(stack.tail, visited, acc)
+          else if(node.isLeaf || visited.contains(node)) postOrderTailRec(stack.tail, visited, acc :+ node.value)
+          else postOrderTailRec(node.left :: node.right :: node :: stack.tail, visited + node, acc)
+        }
+      }
+    }
+
+    /*
+       plt([1], []) =
+       plt([2,6],[1]) =
+       plt([3,4,7,8],[1,2,6]) =
+       plt([5],[1,2,6,3,4,7,8]) =
+       plt([],[1,2,6,3,4,7,8,5]) =
+       [1,2,6,3,4,7,8,5]
+     */
+
+    def perLevelTailRec(level: List[BTree[T]], finalQueue: Queue[BTree[T]] = Queue()): List[T] = {
+      if(level.isEmpty) finalQueue.map(_.value).toList
+      else perLevelTailRec(
+        level.flatMap(node => List(node.left, node.right).filter(!_.isEmpty)),
+        finalQueue ++ level
+      )
+    }
+    perLevelTailRec(List(this))
+  }
 }
  
-object BinaryTreeProblems extends App {
+object Tree extends App {
 
   val tree = BNode(
     1, BNode(
@@ -217,7 +355,7 @@ object BinaryTreeProblems extends App {
       2, BNode(3, BEnd, BEnd),
       BNode(4, BEnd, BEnd)
     ),
-    BNode(6, BNode(7, BEnd, BEnd), BEnd)
+    BNode(5, BNode(6, BEnd, BEnd), BEnd)
   )
 
   println(tree.collectLeaves.map(_.value))
@@ -237,4 +375,7 @@ object BinaryTreeProblems extends App {
   println(tree.collectNodes(3).map(_.value))
   println(tree.collectNodes(42434))
   println(tree.mirror)
+
+  // collect all nodes to a list
+  println(s"Traverse a list ${tree.toList}")
 }
