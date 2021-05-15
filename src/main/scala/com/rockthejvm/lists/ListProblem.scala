@@ -570,7 +570,6 @@ case class ::[+T](override val head: T, override val tail: RList[T]) extends RLi
     }
     mergeSortTailRec(this.map(x => x :: RNil), RNil)
   }
-
   override def quickSort[S >: T](ordering: Ordering[S]): RList[S] = {
 
     /*
@@ -711,7 +710,7 @@ object ListProblem extends App {
   /**
     * Hard difficulty problems
     */
-  def testHardProblems() = {
+  def testHardProblems(): Unit = {
     val unsortedList = 3 :: 2 :: 2 :: 3 :: 5 :: 8 :: 9 :: 0  :: RNil
     val listToSort = aLargeList.sample(10)
     val ordering : Ordering[Int] = Ordering.fromLessThan[Int](_ < _)
@@ -726,6 +725,8 @@ object ListProblem extends App {
     //println((3 :: RNil).mergeSort(ordering))
 
     // test quick sort
-    println(listToSort.quickSort(ordering))
+    //println(listToSort.quickSort(ordering))
   }
+
+  testHardProblems()
 }

@@ -1,5 +1,6 @@
 package com.rockthejvm.trees
 
+import scala.annotation.tailrec
 import scala.collection.immutable.Queue
 
 /**
@@ -114,30 +115,34 @@ object PathSum {
        tp([], [], [6 1], (1 2 4 6), [[1 2 4 -1][1 2 3]]) =
        [[1 2 4 -1][1 2 3]]
      */
-    def tailPaths(nodes: List[BTree[Int]],
-                  targets: List[Int],
-                  currentPath: List[BTree[Int]],
-                  expanded: Set[BTree[Int]],
-                  acc: List[List[BTree[Int]]]): List[List[BTree[Int]]] = {
-      if(tree.isEmpty) acc
+    @tailrec
+    def tailPaths(
+                   nodes: List[BTree[Int]],
+                   targets: List[Int],
+                   currentPath: List[BTree[Int]],
+                   expanded: Set[BTree[Int]],
+                   acc: List[List[Int]]
+                 ): List[List[Int]] =
+      if (nodes.isEmpty) acc
       else {
         val node = nodes.head
         val currentTarget = targets.head
         val children = List(node.left, node.right).filter(!_.isEmpty)
         val childrenTargets = children.map(_ => currentTarget - node.value)
 
-        if(node.isLeaf)
-          if(node.value == currentTarget)
+        if (node.isLeaf)
+          if (node.value == currentTarget)
             tailPaths(nodes.tail, targets.tail, currentPath, expanded, (node :: currentPath).reverse.map(_.value) :: acc)
           else
             tailPaths(nodes.tail, targets.tail, currentPath, expanded, acc)
         else
-          if(expanded.contains(node))
-            tailPaths(nodes.tail, targets.tail, currentPath.tail, expanded, acc)
-          else
-            tailPaths(children ++ nodes, childrenTargets ++ targets, node :: currentPath, expanded + node, acc)
+        if (expanded.contains(node))
+          tailPaths(nodes.tail, targets.tail, currentPath.tail, expanded, acc)
+        else
+          tailPaths(children ++ nodes, childrenTargets ++ targets, node :: currentPath, expanded + node, acc)
+
       }
-    }
+
 
     stackPaths(tree, target)
   }

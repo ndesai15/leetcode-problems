@@ -228,19 +228,18 @@ case class BNode[+T](override val value:T, override val left: BTree[T], override
       - per-level: [1,2,6,3,4,7,8,5]
    */
   override def toList: List[T] = {
-
     def preOrderStack(tree: BTree[T]): List[T] = {
-      if(tree.isEmpty) List()
+      if (tree.isEmpty) List()
       else tree.value :: preOrderStack(tree.left) ++ preOrderStack(tree.right)
     }
 
     def inOrderStack(tree: BTree[T]): List[T] = {
-      if(tree.isEmpty) List()
+      if (tree.isEmpty) List()
       else inOrderStack(tree.left) ++ List(tree.value) ++ inOrderStack(tree.right)
     }
 
     def postOrderStack(tree: BTree[T]): List[T] = {
-      if(tree.isEmpty) List()
+      if (tree.isEmpty) List()
       else postOrderStack(tree.left) ++ postOrderStack(tree.right) ++ List(tree.value)
     }
 
@@ -266,14 +265,14 @@ case class BNode[+T](override val value:T, override val left: BTree[T], override
 
      */
 
-    def preOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
-      if(stack.isEmpty) acc.toList
+    def preOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T] = Queue()): List[T] = {
+      if (stack.isEmpty) acc.toList
       else {
-        if(stack.head.isEmpty) preOrderTailRec(stack.tail, visited, acc)
+        if (stack.head.isEmpty) preOrderTailRec(stack.tail, visited, acc)
         else {
           val node = stack.head
-          if(node.isEmpty) preOrderTailRec(stack.tail, visited, acc)
-          else if(node.isLeaf || visited.contains(node)) preOrderTailRec(stack.tail, visited, acc :+ node.value)
+          if (node.isEmpty) preOrderTailRec(stack.tail, visited, acc)
+          else if (node.isLeaf || visited.contains(node)) preOrderTailRec(stack.tail, visited, acc :+ node.value)
           else preOrderTailRec(node :: node.left :: node.right :: stack.tail, visited + node, acc)
         }
       }
@@ -295,26 +294,27 @@ case class BNode[+T](override val value:T, override val left: BTree[T], override
        iot([],[1,2,4,6], [3,2,4,5,1,7,6,8]) =
        [3,2,4,5,1,7,6,8]
      */
-    def inOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
-      if(stack.isEmpty) acc.toList
+    def inOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T] = Queue()): List[T] = {
+      if (stack.isEmpty) acc.toList
       else {
-        if(stack.head.isEmpty) inOrderTailRec(stack.tail, visited, acc)
+        if (stack.head.isEmpty) inOrderTailRec(stack.tail, visited, acc)
         else {
           val node = stack.head
-          if(node.isEmpty) inOrderTailRec(stack.tail, visited, acc)
-          else if(node.isLeaf || visited.contains(node)) inOrderTailRec(stack.tail, visited, acc :+ node.value)
+          if (node.isEmpty) inOrderTailRec(stack.tail, visited, acc)
+          else if (node.isLeaf || visited.contains(node)) inOrderTailRec(stack.tail, visited, acc :+ node.value)
           else inOrderTailRec(node.left :: node :: node.right :: stack.tail, visited + node, acc)
         }
       }
     }
-    def postOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T]= Queue()): List[T] = {
-      if(stack.isEmpty) acc.toList
+
+    def postOrderTailRec(stack: List[BTree[T]], visited: Set[BTree[T]] = Set(), acc: Queue[T] = Queue()): List[T] = {
+      if (stack.isEmpty) acc.toList
       else {
-        if(stack.head.isEmpty) postOrderTailRec(stack.tail, visited, acc)
+        if (stack.head.isEmpty) postOrderTailRec(stack.tail, visited, acc)
         else {
           val node = stack.head
-          if(node.isEmpty) postOrderTailRec(stack.tail, visited, acc)
-          else if(node.isLeaf || visited.contains(node)) postOrderTailRec(stack.tail, visited, acc :+ node.value)
+          if (node.isEmpty) postOrderTailRec(stack.tail, visited, acc)
+          else if (node.isLeaf || visited.contains(node)) postOrderTailRec(stack.tail, visited, acc :+ node.value)
           else postOrderTailRec(node.left :: node.right :: node :: stack.tail, visited + node, acc)
         }
       }
@@ -330,14 +330,21 @@ case class BNode[+T](override val value:T, override val left: BTree[T], override
      */
 
     def perLevelTailRec(level: List[BTree[T]], finalQueue: Queue[BTree[T]] = Queue()): List[T] = {
-      if(level.isEmpty) finalQueue.map(_.value).toList
+      if (level.isEmpty) finalQueue.map(_.value).toList
       else perLevelTailRec(
         level.flatMap(node => List(node.left, node.right).filter(!_.isEmpty)),
         finalQueue ++ level
       )
     }
+
     perLevelTailRec(List(this))
   }
+}
+
+object BTree {
+  def apply[T](): BTree[T] = BEnd
+  def apply[T](value: T): BTree[T] = BNode(value, BEnd, BEnd)
+  def apply[T](value: T, left: BTree[T], right: BTree[T]) : BTree[T] = BNode(value, left, right)
 }
  
 object Tree extends App {
@@ -378,4 +385,8 @@ object Tree extends App {
 
   // collect all nodes to a list
   println(s"Traverse a list ${tree.toList}")
+
+  val l1 = List(1,2,3)
+  val q2: Queue[Int] = Queue(l1: _*)
+
 }
