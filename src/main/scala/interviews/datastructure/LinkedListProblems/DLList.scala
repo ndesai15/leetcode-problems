@@ -1,5 +1,7 @@
 package interviews.datastructure.LinkedListProblems
 
+import scala.collection.immutable.HashMap
+
 /**
   * @author ndesai on 2020-12-06
   *
