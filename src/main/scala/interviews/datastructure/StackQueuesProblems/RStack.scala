@@ -1,0 +1,131 @@
+package interviews.datastructure.StackQueuesProblems
+
+/**
+  * @author ndesai on 8/5/21
+  *
+ */
+ 
+ 
+sealed abstract class RStack[+T] {
+
+  // Build Stack Data Structure
+
+  def head: T
+  def tail: RStack[T]
+
+  def peek(): T
+  def pop(): RStack[T]
+  def push[S >: T](element: S): RStack[S]
+  def isEmpty: Boolean
+  def ::[S >: T](element: S): RStack[S] = new SCons[S](element, this)
+  def ++[S >: T](element: S): RStack[S]
+  def removeLastElement(): RStack[T]
+  def reverse(): RStack[T]
+
+  def printElement: String
+
+  // polymorphic call
+  override def toString(): String = "[" + printElement + "]"
+}
+
+case object SEmpty extends RStack[Nothing] {
+  override def head: Nothing = throw new NoSuchElementException
+  override def tail: RStack[Nothing] = throw new NoSuchElementException
+  override def pop(): RStack[Nothing] = throw new NoSuchElementException
+  override def push[S >: Nothing](element: S): RStack[S] = ???
+  override def peek(): Nothing = throw new NoSuchElementException
+  override def isEmpty: Boolean = true
+  override def reverse(): RStack[Nothing] = this
+  override def ++[S >: Nothing](element: S): RStack[S] = new SCons[S](element, this)
+  override def removeLastElement(): RStack[Nothing] = this
+  override def printElement: String = ""
+}
+
+case class SCons[+T](override val head:T, override val tail: RStack[T]) extends RStack[T] {
+  def printElement: String = {
+    if(tail.isEmpty) "" + head
+    else head + " " + tail.printElement
+  }
+  override def isEmpty: Boolean = false
+  override def reverse(): RStack[T] = {
+    def reverseTailRec(remaining: RStack[T], result: RStack[T]): RStack[T] = {
+      if (remaining.isEmpty) result
+      else reverseTailRec(remaining.tail, remaining.head :: result)
+    }
+    reverseTailRec(this, SEmpty)
+  }
+
+  override def ++[S >: T](element: S): RStack[S] = {
+    def addTailRec(remaining: RStack[S], result: RStack[S]): RStack[S] = {
+      if (remaining.isEmpty) (element :: result).reverse()
+      else addTailRec(remaining.tail, remaining.head :: result)
+    }
+    addTailRec(this, SEmpty)
+  }
+
+  override def removeLastElement(): RStack[T] = {
+
+    def removeTailRec(remaining: RStack[T], result: RStack[T]): RStack[T] = {
+      if (remaining.isEmpty) result
+      if (remaining.tail.isEmpty) result
+      else removeTailRec(remaining.tail, remaining.head :: result)
+    }
+    removeTailRec(this, SEmpty)
+  }
+
+  override def push[S >: T](element: S): RStack[S] = {
+    new SCons[S](head, this.tail ++ element)
+  }
+
+  override def pop(): RStack[T] =
+    if (this.tail.isEmpty) SEmpty
+    else new SCons[T](this.head,this.tail.removeLastElement())
+
+  override def peek(): T = {
+    def peekTailRec(remaining: RStack[T]): T = {
+      if (remaining.tail.isEmpty) remaining.head
+      else peekTailRec(remaining.tail)
+    }
+    if(this.tail.isEmpty) head
+    else peekTailRec(this.tail)
+  }
+}
+
+object JayBahucharStack extends App {
+
+  val stack = SCons(1, SEmpty)
+
+  val emptyStack = stack.pop()
+  println("Empty Stack is " + emptyStack toString())
+
+
+  println("Initial Stack: " + stack toString)
+  println("Head should of the stack is " + stack.peek()) // Should return 1
+
+  val pushStack2 = stack.push(2) // 1 -> 2
+  println(pushStack2.toString())
+  println("After pushing 2 to Stack current head is " + pushStack2.peek())  // 2
+
+  println("Push 3 to Stack")
+  val againPush = pushStack2.push(3)  // 1 -> 2 -> 3
+  println("Current Stack is " + againPush toString)
+  println("After pushing 3 to Stack current head is " + againPush.peek()) // 3
+
+  println("Push 4 to Stack")
+  val againPush2 = againPush.push(4) // 1 -> 2 -> 3 -> 4
+  println("Current Stack is " + againPush2 toString)
+
+  println("Push 5 to Stack")
+  val againPush3 = againPush2.push(5) // 1 -> 2 -> 3 -> 4 -> 5
+  println("Current Stack is " + againPush3 toString)
+  println("Now head is " + againPush3.peek()) //5
+
+  val popTwice = againPush3.pop().pop() // should POP out 5 & 4
+  println("After popping out element twice stack is " + popTwice toString)
+
+  val push100 = popTwice.push(100) // 1 -> 2 -> 3 -> 100
+  val pop100 = push100.pop() // 1 -> 2 -> 3
+
+  println(pop100 toString()) // 1 -> 2 -> 3
+  println(pop100.peek()) // return 3 */
+}

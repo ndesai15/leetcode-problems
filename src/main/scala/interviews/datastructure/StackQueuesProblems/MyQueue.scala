@@ -11,7 +11,7 @@ abstract class MyQueue[+A] {
   /*
      Implement a Stack as a linked list
 
-     LIFO = LAST IN FIRST OUT
+     FIFO = FIRST IN FIRST OUT
 
      isEmpty = Stack is Empty or not
      enqueue = push an element to stack
@@ -21,10 +21,13 @@ abstract class MyQueue[+A] {
    */
 
   def isEmpty: Boolean
-  def enqueue[B >:A](element: B): MyQueue[B]
+  def head: A
+  def tail: MyQueue[A]
+  def enqueue[B >:A](element: B): MyQueue[B] = new ConsQueue[B](element, this)
   def dequeue():MyQueue[A]
   def peek():A
 
+  def reverse(): MyQueue[A]
   def printElement: String
   // polymorphic call
   override def toString(): String = "[" + printElement + "]"
@@ -32,39 +35,58 @@ abstract class MyQueue[+A] {
 }
 
 case object EmptyQueue extends MyQueue[Nothing]{
-
+  override def head: Nothing = throw new NoSuchElementException
+  override def tail: MyQueue[Nothing] = throw new NoSuchElementException
   override def isEmpty: Boolean = true
-
-  override def enqueue[B >: Nothing](element: B): MyQueue[B] = ConsQueue(element,this)
-
   override def dequeue(): MyQueue[Nothing] = throw new NoSuchMethodException("You can't pop from Empty Stack")
-
   override def peek(): Nothing = throw new NoSuchElementException("No element in Empty Stack")
-
+  override def reverse(): MyQueue[Nothing] = this
   override def printElement: String = ""
-
 }
 
-case class ConsQueue[+A](head: A, tail: MyQueue[A]) extends MyQueue[A] {
-
+case class ConsQueue[+A](override val head: A, override val tail: MyQueue[A]) extends MyQueue[A] {
   override def isEmpty: Boolean = false
-
   def printElement: String = {
     if(tail.isEmpty) "" + head
     else head + " " + tail.printElement
   }
 
-  override def enqueue[B >: A](element: B): MyQueue[B] = ConsQueue(this.head, this.tail.enqueue(element))
+  def reverse(): MyQueue[A] = {
+    def reverseTailRec(remaining: MyQueue[A], result: MyQueue[A]): MyQueue[A] = {
+      if (remaining.isEmpty) result
+      else reverseTailRec(remaining.tail, result.enqueue(remaining.head))
+    }
 
-  override def dequeue(): MyQueue[A] = if(tail.isEmpty) EmptyQueue else tail //ConsStack(tail.peek(), this.tail - this.tail.peek())
+    if (this.tail.isEmpty) EmptyQueue.enqueue(this.head)
+    else reverseTailRec(this, EmptyQueue)
+  }
 
-  override def peek(): A = head
+
+  override def dequeue(): MyQueue[A] = {
+    def dequeueTailRec(remaining: MyQueue[A], result: MyQueue[A]): MyQueue[A] = {
+      if (remaining.tail.isEmpty) result
+      else dequeueTailRec(remaining.tail, result.enqueue(remaining.head))
+    }
+
+    if (tail.isEmpty) EmptyQueue
+    else dequeueTailRec(this, EmptyQueue)
+  }
+  override def peek(): A = {
+    def peekTailRec(remaining: MyQueue[A]): A = {
+      if (remaining.tail.isEmpty) remaining.head
+      else peekTailRec(remaining.tail)
+    }
+
+    if (this.tail.isEmpty) this.head
+    else peekTailRec(this)
+  }
 }
 
 object MyQueueTest extends App {
   val queue = ConsQueue("Joy", ConsQueue("Matt", EmptyQueue))
   val anotherQueue = queue.enqueue("Pavel").enqueue("Samir")
   println(anotherQueue.peek())
+  println(anotherQueue.dequeue().dequeue() toString())
   println(anotherQueue.dequeue().dequeue().dequeue().dequeue() toString())
 
 }

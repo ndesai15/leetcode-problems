@@ -56,7 +56,7 @@ object Duplicates {
     val optimal = list.foldLeft(0)(_ ^ _)
     optimal
 
-    naiveWithMemory(list)
+    //naiveWithMemory(list)
   }
 
   def main(args: Array[String]): Unit = {
