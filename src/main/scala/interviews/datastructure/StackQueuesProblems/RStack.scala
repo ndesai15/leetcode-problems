@@ -10,8 +10,8 @@ sealed abstract class RStack[+T] {
 
   // Build Stack Data Structure
 
-  def head: T
-  def tail: RStack[T]
+  def top: T
+  def bottom: RStack[T]
 
   def peek(): T
   def pop(): RStack[T]
@@ -29,10 +29,10 @@ sealed abstract class RStack[+T] {
 }
 
 case object SEmpty extends RStack[Nothing] {
-  override def head: Nothing = throw new NoSuchElementException
-  override def tail: RStack[Nothing] = throw new NoSuchElementException
+  override def top: Nothing = throw new NoSuchElementException
+  override def bottom: RStack[Nothing] = throw new NoSuchElementException
   override def pop(): RStack[Nothing] = throw new NoSuchElementException
-  override def push[S >: Nothing](element: S): RStack[S] = ???
+  override def push[S >: Nothing](element: S): RStack[S] = new SCons[S](element, this)
   override def peek(): Nothing = throw new NoSuchElementException
   override def isEmpty: Boolean = true
   override def reverse(): RStack[Nothing] = this
@@ -41,16 +41,16 @@ case object SEmpty extends RStack[Nothing] {
   override def printElement: String = ""
 }
 
-case class SCons[+T](override val head:T, override val tail: RStack[T]) extends RStack[T] {
+case class SCons[+T](override val top:T, override val bottom: RStack[T]) extends RStack[T] {
   def printElement: String = {
-    if(tail.isEmpty) "" + head
-    else head + " " + tail.printElement
+    if(bottom.isEmpty) "" + top
+    else top + " " + bottom.printElement
   }
   override def isEmpty: Boolean = false
   override def reverse(): RStack[T] = {
     def reverseTailRec(remaining: RStack[T], result: RStack[T]): RStack[T] = {
       if (remaining.isEmpty) result
-      else reverseTailRec(remaining.tail, remaining.head :: result)
+      else reverseTailRec(remaining.bottom, remaining.top :: result)
     }
     reverseTailRec(this, SEmpty)
   }
@@ -58,7 +58,7 @@ case class SCons[+T](override val head:T, override val tail: RStack[T]) extends 
   override def ++[S >: T](element: S): RStack[S] = {
     def addTailRec(remaining: RStack[S], result: RStack[S]): RStack[S] = {
       if (remaining.isEmpty) (element :: result).reverse()
-      else addTailRec(remaining.tail, remaining.head :: result)
+      else addTailRec(remaining.bottom, remaining.top :: result)
     }
     addTailRec(this, SEmpty)
   }
@@ -67,27 +67,27 @@ case class SCons[+T](override val head:T, override val tail: RStack[T]) extends 
 
     def removeTailRec(remaining: RStack[T], result: RStack[T]): RStack[T] = {
       if (remaining.isEmpty) result
-      if (remaining.tail.isEmpty) result
-      else removeTailRec(remaining.tail, remaining.head :: result)
+      if (remaining.bottom.isEmpty) result
+      else removeTailRec(remaining.bottom, remaining.top :: result)
     }
     removeTailRec(this, SEmpty)
   }
 
   override def push[S >: T](element: S): RStack[S] = {
-    new SCons[S](head, this.tail ++ element)
+    new SCons[S](top, this.bottom ++ element)
   }
 
   override def pop(): RStack[T] =
-    if (this.tail.isEmpty) SEmpty
-    else new SCons[T](this.head,this.tail.removeLastElement())
+    if (this.bottom.isEmpty) SEmpty
+    else new SCons[T](this.top,this.bottom.removeLastElement())
 
   override def peek(): T = {
     def peekTailRec(remaining: RStack[T]): T = {
-      if (remaining.tail.isEmpty) remaining.head
-      else peekTailRec(remaining.tail)
+      if (remaining.bottom.isEmpty) remaining.top
+      else peekTailRec(remaining.bottom)
     }
-    if(this.tail.isEmpty) head
-    else peekTailRec(this.tail)
+    if(this.bottom.isEmpty) top
+    else peekTailRec(this.bottom)
   }
 }
 
