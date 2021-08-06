@@ -85,7 +85,7 @@ case class ConsQueue[+A](override val first: A, override val last: MyQueue[A]) e
 object MyQueueTest extends App {
   val queue = ConsQueue("Joy", ConsQueue("Matt", EmptyQueue))
   val anotherQueue = queue.enqueue("Pavel").enqueue("Samir")
-  println(anotherQueue.peek())
-  println(anotherQueue.dequeue().dequeue() toString())
+  println(anotherQueue.peek()) // Matt
+  println(anotherQueue.dequeue().dequeue() toString()) // Pavel -> Samir
   println(anotherQueue.dequeue().dequeue().dequeue().dequeue() toString())
 }
